@@ -1,0 +1,31 @@
+# Node.js Dependencies
+node_modules/
+
+# Environment Variables
+.env
+
+# Log Files
+*.log
+
+# Build Outputs
+dist/
+build/
+
+# Testing Coverage Reports
+coverage/
+
+# Temporary Files
+*.tmp
+*.cache
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
+
+# IDE Specific Files
+.vscode/
+.idea/
+*.iml
