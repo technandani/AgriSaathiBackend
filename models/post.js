@@ -24,7 +24,7 @@ const PostSchema = new mongoose.Schema(
     },
     post_type: {
       type: String,
-      enum: ["Question", "Announcement", "Sell", "Rent", "Other"],
+      enum: ["Question", "Announcement", "Information", "Showcase", "Sell", "Rent", "Other"],
       required: true,
     },
     media_type: {

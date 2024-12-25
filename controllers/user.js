@@ -93,4 +93,23 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const getUser = async (req, res) => {
+  user_id = req.params;
+  try {
+    const userProfile = await User.find(user_id);
+    res.status(200).json({
+      success: true,
+      message: "user profile information was fetched successfully",
+      userProfile,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch posts.",
+      error: error.message,
+    });
+  }
+};
+
+
+module.exports = { register, login, getUser };

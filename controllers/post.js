@@ -16,19 +16,21 @@ const createPost = async (req, res) => {
   const { user_id, title, description, post_type, category, tags } = req.body;
 
   try {
-    // Upload media files to Cloudinary
     const media_urls = req.files
       ? await Promise.all(
-          req.files.map((file) =>
-            cloudinary.uploader.upload(file.path, { folder: "posts/media" })
-          )
+          req.files.map((file) => {
+            const isVideo = file.mimetype.startsWith("video");
+            return cloudinary.uploader.upload(file.path, {
+              folder: "posts/media",
+              resource_type: isVideo ? "video" : "image", // Specify resource type
+            });
+          })
         ).then((uploads) => uploads.map((upload) => upload.secure_url))
       : [];
 
     // Determine media type
     const media_type =
-      media_urls.length > 0 &&
-      (media_urls[0].endsWith(".mp4") || media_urls[0].endsWith(".avi"))
+      media_urls.length > 0 && req.files[0].mimetype.startsWith("video")
         ? "Video"
         : media_urls.length > 0
         ? "Image"
@@ -61,6 +63,7 @@ const createPost = async (req, res) => {
     });
   }
 };
+
 
 // Update a Post
 const updatePost = async (req, res) => {
@@ -165,7 +168,43 @@ const deletePost = async (req, res) => {
 // Get All Posts
 const getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find();
+    const posts = await Post.find().sort({ _id: -1 }).populate("user_id", "name profile_pic_url occupation");
+    console.log("Populated posts:", posts);
+    res.status(200).json({
+      success: true,
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch posts.",
+      error: error.message,
+    });
+  }
+};
+
+const getUserPosts = async (req, res) => {
+  user_id = req.params;
+  try {
+    const posts = await Post.find(user_id).sort({ _id: -1 }).populate("user_id", "name profile_pic_url occupation");
+    console.log("Populated posts:", posts);
+    res.status(200).json({
+      success: true,
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch posts.",
+      error: error.message,
+    });
+  }
+};
+
+const getUserHavePost = async (req, res) => {
+  user_id = req.params;
+  try {
+    const posts = await Post.find(user_id).sort({ _id: -1 }).populate("user_id", "name profile_pic_url occupation");
     console.log("Populated posts:", posts);
     res.status(200).json({
       success: true,
@@ -185,4 +224,5 @@ module.exports = {
   updatePost,
   deletePost,
   getAllPosts,
+  getUserPosts,
 };

@@ -63,7 +63,18 @@ const UserSchema = new mongoose.Schema(
         },
         message: (props) => `${props.value} is not a valid image URL!`,
       },
-      default: "https://res.cloudinary.com/dpmengi5q/image/upload/v1734810660/posts/media/iftmb21qeyedevg0pwxj.png",
+      default: "https://res.cloudinary.com/dpmengi5q/image/upload/v1734917603/posts/media/cqht9kfisc7xhqwfazfg.jpg",
+    },
+    profile_banner_url: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: function (v) {
+          return !v || /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))$/.test(v); // Validate image URL or allow null
+        },
+        message: (props) => `${props.value} is not a valid image URL!`,
+      },
+      default: "https://res.cloudinary.com/dpmengi5q/image/upload/v1734917603/posts/media/cqht9kfisc7xhqwfazfg.jpg",
     },
     crops: {
       type: [String], 
