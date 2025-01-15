@@ -32,22 +32,24 @@ const PostSchema = new mongoose.Schema(
       enum: ["None", "Image", "Video"],
       default: "None",
     },
-    media_urls: {
-      type: [String], 
-      validate: {
-        validator: function (urls) {
-          return (
-            !urls ||
-            urls.every((url) =>
-              /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|mp4|mov|avi|webm))$/.test(
-                url
-              )
-            )
-          );
+    media_urls: [
+      {
+        url: {
+          type: String,
+          required: true,
+          validate: {
+            validator: function (url) {
+              return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|mp4|mov|avi|webm))$/.test(url);
+            },
+            message: (props) => `${props.value} is not a valid media URL!`,
+          },
         },
-        message: (props) => `${props.value} is not a valid media URL!`,
+        public_id: {
+          type: String,
+          required: true,
+        },
       },
-    },
+    ],    
     category: {
       type: String,
       maxlength: 50,

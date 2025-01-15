@@ -57,13 +57,15 @@ const SchemeSchema = new mongoose.Schema({
     default: null,
   },
   logo: {
-    type: String,
-    default: null,
+    url: { type: String },
+    public_id: { type: String }, 
   },
-  images: {
-    type: [String], 
-    default: [],
-  },
+  images: [
+    {
+      url: { type: String },
+      public_id: { type: String }, 
+    },
+  ],
   state_specific: {
     type: Boolean,
     default: false,

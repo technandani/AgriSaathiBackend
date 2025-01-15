@@ -1,15 +1,7 @@
 const Scheme = require('../models/scheme');
 const cloudinary = require('cloudinary').v2; 
-const dotenv = require("dotenv");
-dotenv.config();
+const { uploadToCloudinary } = require("../utils/cloudinary");
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// creation logic for schemes
 const createScheme = async (req, res) => {
   try {
     const {
@@ -27,18 +19,19 @@ const createScheme = async (req, res) => {
       end_date,
       state_specific,
       applicable_states,
-      tags
+      tags,
     } = req.body;
 
-    console.log("Uploaded Files:", req.files);
-    const logo = req.files?.logo?.[0]?.path
-      ? await cloudinary.uploader.upload(req.files.logo[0].path, { folder: "schemes/logos" })
+    // Upload logo if present
+    const logo = req.files?.logo
+      ? await uploadToCloudinary(req.files.logo[0].buffer, "schemes/logos")
       : null;
 
+    // Upload images if present
     const images = req.files?.images
       ? await Promise.all(
-          req.files.images.map(file =>
-            cloudinary.uploader.upload(file.path, { folder: "schemes/images" })
+          req.files.images.map((file) =>
+            uploadToCloudinary(file.buffer, "schemes/images")
           )
         )
       : [];
@@ -56,29 +49,33 @@ const createScheme = async (req, res) => {
       documentation_url,
       start_date,
       end_date,
-      logo: logo ? logo.secure_url : null,
-      images: images.map(img => img.secure_url),
+      logo: logo ? { url: logo.secure_url, public_id: logo.public_id } : null,
+      images: images.map((img) => ({
+        url: img.secure_url,
+        public_id: img.public_id,
+      })),
       state_specific,
       applicable_states,
-      tags
+      tags,
     });
 
     const savedScheme = await newScheme.save();
     res.status(201).json({
       success: true,
       message: "Scheme created successfully.",
-      data: savedScheme
+      data: savedScheme,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Error creating scheme.",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
-//retrieving scheme from database logic 
+
+//retrieving scheme from database
 const getSchemes = async (req, res) => {
   try {
     const schemes = await Scheme.find();
@@ -103,14 +100,20 @@ const updateScheme = async (req, res) => {
     const updates = req.body;
 
     if (req.files?.logo) {
-      const logo = await cloudinary.uploader.upload(req.files.logo.path, { folder: 'schemes/logos' });
+      const logo = req.files?.logo
+      ? await uploadToCloudinary(req.files.logo[0].buffer, "schemes/logos")
+      : null;
       updates.logo = logo.secure_url;
     }
 
     if (req.files?.images) {
-      const images = await Promise.all(
-        req.files.images.map(image => cloudinary.uploader.upload(image.path, { folder: 'schemes/images' }))
-      );
+      const images = req.files?.images
+      ? await Promise.all(
+          req.files.images.map((file) =>
+            uploadToCloudinary(file.buffer, "schemes/images")
+          )
+        )
+      : [];
       updates.images = images.map(img => img.secure_url);
     }
 
@@ -146,25 +149,44 @@ const deleteScheme = async (req, res) => {
   try {
     const { scheme_id } = req.params;
 
-    const deletedScheme = await Scheme.findOneAndDelete({ scheme_id });
+    const scheme = await Scheme.findOne({ scheme_id });
 
-    if (!deletedScheme) {
+    if (!scheme) {
       return res.status(404).json({
         success: false,
-        message: 'Scheme not found.',
+        message: "Scheme not found.",
       });
     }
 
+    // Check logo public_id
+    console.log("Logo Public ID:", scheme.logo?.public_id);
+    if (scheme.logo && scheme.logo.public_id) {
+      await cloudinary.uploader.destroy(scheme.logo.public_id);
+    }
+
+    // Check images public_id
+    if (scheme.images && scheme.images.length > 0) {
+      for (const img of scheme.images) {
+        console.log("Image Public ID:", img.public_id);
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
+    }
+
+    // Delete scheme from database
+    await Scheme.deleteOne({ scheme_id });
+
     res.status(200).json({
       success: true,
-      message: 'Scheme deleted successfully.',
-      data: deletedScheme
+      message: "Scheme deleted successfully.",
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
-      message: 'Error deleting scheme.',
-      error: error.message
+      message: "Error deleting scheme.",
+      error: error.message,
     });
   }
 };
