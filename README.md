@@ -7,6 +7,8 @@ Backend Repository: [Link](https://github.com/technandani/AgriSaathiBackend)
 
 Frontend Demo: [Link](https://agriSaathi-demo-url.com)
 
+backend Demo: [Link](https://agri-saathi-backend.vercel.app)
+
 Figma design: [Link](https://www.figma.com/design/qGOUi5lgqs1AI3IGM42ReJ/Untitled?node-id=0-1&t=YBpTnklEOikcRApu-1)
 
 ## Features
