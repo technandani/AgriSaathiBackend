@@ -1,7 +1,5 @@
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
 const connectToDatabase = require("./config/db");
 const cloudinaryConnection = require("./config/cloudinary");
 const SchemeRouter = require("./routers/scheme");
@@ -9,8 +7,6 @@ const UserRouter = require("./routers/user");
 const PostRouter = require("./routers/post");
 const CommunityRouter = require("./routers/community");
 const weatherAlertRegistration = require("./routers/weatherAlertRegistration");
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,7 +18,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json()); 
-app.use(cookieParser()); 
 app.use(express.urlencoded({ extended: false })); 
 
 app.use((req, res, next) => {
